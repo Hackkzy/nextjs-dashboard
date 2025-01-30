@@ -17,6 +17,7 @@ const FormSchema = z.object({
   }),
   date: z.string(),
 });
+
 export type State = {
   errors?: {
     customerId?: string[];
@@ -29,7 +30,23 @@ export type State = {
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function createInvoice(formData: FormData) {
+export async function createInvoice(prevState: State, formData: FormData) {
+  // Validate form fields using Zod
+  const validatedFields = CreateInvoice.safeParse({
+    customerId: formData.get("customerId"),
+    amount: formData.get("amount"),
+    status: formData.get("status"),
+  });
+
+  console.log(validatedFields);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create Invoice",
+    };
+  }
+
   const { customerId, amount, status } = CreateInvoice.parse({
     customerId: formData.get("customerId"),
     amount: formData.get("amount"),
@@ -77,7 +94,7 @@ export async function updateInvoice(id: string, formData: FormData) {
 
 export async function deleteInvoice(id: string) {
   try {
-  await sql`DELETE FROM invoices WHERE id = ${id}`;
+    await sql`DELETE FROM invoices WHERE id = ${id}`;
   } catch (error) {
     console.error(error);
   }
