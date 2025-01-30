@@ -120,5 +120,6 @@ export async function authenticate(
           return "An error occurred";
       }
     }
+	throw error;
   }
 }
